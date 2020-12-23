@@ -1,2 +1,3 @@
-# mapbrick
-This is the repository of mapbrick.com
+# mapbrick.com
+
+Just another brick in the World
