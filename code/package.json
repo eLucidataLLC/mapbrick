@@ -9,6 +9,7 @@
   "author": "pb",
   "license": "ISC",
   "dependencies": {
-    "@turf/turf": "^5.1.6"
+    "@turf/turf": "^5.1.6",
+    "d3-node": "^2.2.2"
   }
 }

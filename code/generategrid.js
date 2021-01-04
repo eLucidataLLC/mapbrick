@@ -10,10 +10,15 @@ const turf = require('@turf/turf');
 
 const dataPath = '../data/';
 const inputData = [{
-  label: 'montserrat',
-  data: 'Montserrat200mPoly.geojson'
-}];
-const _i = inputData[0];
+    label: 'montserrat',
+    data: 'Montserrat100mfromGDAL.geojson'
+  },
+  {
+    label: 'fuji',
+    data: 'Fuji200m.geojson'
+  }
+];
+const _i = inputData[1];
 const debug = true;
 const gridedArea = JSON.parse(fs.readFileSync(dataPath + _i.data));
 
