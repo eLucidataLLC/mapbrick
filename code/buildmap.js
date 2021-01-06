@@ -5,6 +5,8 @@ gdal_contour -b 1 -a ELEV -i 100.0 -f "GeoJSON" Montserrat-topo.tif Montserrat10
 gdal_contour -b 1 -amin amin -amax amax -i 100.0 -f "GeoJSON" -p Montserrat-topo.tif Montserrat100mfromGDAL.geojson
 gdal_contour -b 1 -amin amin -amax amax -i 150.0 -f "GeoJSON" -p Montserrat-topo.tif Montserrat150mfromGDAL.geojson
 gdal_contour -b 1 -amin amin -amax amax -i 200.0 -f "GeoJSON" -p GMRTv3_8_20210102topo.tif Fuji2000m.geojson
+
+https://github.com/d3/d3-scale-chromatic
  */
 const fs = require('fs');
 const turf = require('@turf/turf');
@@ -13,11 +15,24 @@ const d3 = require('d3');
 const dataPath = '../data/';
 
 const options = {
-  styles: '.land{fill:#ccd7b2;stroke:#a7ba78;fill-opacity:.4;stroke-width:.5;stroke-linejoin:round;}.grid{fill:none;stroke:#bbb;opacity:.3;stroke-width:.5;}',
+  styles: '.land{fill:none;stroke:#111;opacity:.4;stroke-width:.5;stroke-linejoin:round;}.grid{fill:none;stroke:#bbb;opacity:.5;stroke-width:.5;}',
   d3Module: d3
 };
-const grid = JSON.parse(fs.readFileSync(dataPath + 'fuji-0.2km-square-grid.geojson'));
-const data = JSON.parse(fs.readFileSync(dataPath + 'Fuji200m.geojson'));
+const inputData = [{
+    label: 'montserrat',
+    data: 'Montserrat150mfromGDAL.geojson',
+    grid: 'montserrat-0.15km-square-grid.geojson'
+  },
+  {
+    label: 'fuji',
+    data: 'Fuji200m.geojson',
+    grid: 'fuji-0.2km-square-grid.geojson'
+  }
+];
+const _i = inputData[0];
+const grid = JSON.parse(fs.readFileSync(dataPath + _i.grid));
+const data = JSON.parse(fs.readFileSync(dataPath + _i.data));
+const bricks = JSON.parse(fs.readFileSync(dataPath + _i.label + '-bricks.geojson'));
 
 // map svg ---------------------------------------------------------------
 
@@ -29,6 +44,12 @@ var projection = d3.geoMercator().fitSize([width, height], grid)
 var path = d3.geoPath().projection(projection);
 
 var svg = d3n.createSVG(width, height);
+var colours = ["#6363FF", "#6373FF", "#63A3FF", "#63E3FF", "#63FFFB", "#63FFCB", "#63FF9B", "#63FF6B", "#7BFF63", "#BBFF63", "#DBFF63", "#FBFF63", "#FFD363", "#FFB363", "#FF8363", "#FF7363", "#FF6364"];
+
+var color = d3.scaleOrdinal()
+  .domain([0, 16])
+  // .range(colours);
+  .range(d3.schemePaired);
 
 svg.append('rect')
   .attr('width', '100%')
@@ -36,12 +57,19 @@ svg.append('rect')
   .attr('fill', '#fafafa');
 
 svg.selectAll('.land')
+  .data(bricks.features)
+  .enter()
+  .append('path')
+  .attr('d', path)
+  .attr('fill', d => color(d.properties.contour))
+  .attr("fill-opacity", 0.85)
+
+svg.selectAll('.land')
   .data(data.features)
   .enter()
   .append('path')
   .attr('class', 'land')
-  .attr('d', path);
-
+  .attr('d', path)
 svg.selectAll('.grid')
   .data(grid.features)
   .enter()
@@ -49,35 +77,4 @@ svg.selectAll('.grid')
   .attr('class', 'grid')
   .attr('d', path)
 
-// var domain = Math.max(...individualsCount) - Math.floor(stats.stdev(individualsCount));
-// var range = (cellSide > 3) ? Math.floor(cellSide * 3 / 2) : 5;
-// var radius = d3.scaleSqrt()
-//   .domain([0, domain])
-//   .range([3, range])
-//
-// svg.selectAll('circle')
-//   .data(cluster.features)
-//   .enter().append('circle')
-//   .attr('transform', function(d) {
-//     return 'translate(' + path.centroid(d) + ')'
-//   })
-//   .attr('r', function(d) {
-//     return radius(d.properties.individuals);
-//   })
-//   .attr('class', 'point');
-
-// var legend = svg.append("g")
-//   .attr("class", "legend")
-//   .attr("transform", "translate(" + (width - 75) + "," + (height - 20) + ")")
-//   .selectAll("g")
-//   .data([0, domain / 2, domain])
-//   .enter().append("g");
-//
-// legend.append("circle")
-//   .attr("cy", function(d) {
-//     return -2 * radius(d) ;
-//   })
-//   .attr("r", radius)
-//   .attr('class', 'point');
-
-fs.writeFileSync('../img/_mapFuji.svg', d3n.svgString(svg.node()));
+fs.writeFileSync('../img/_' + _i.label + '.svg', d3n.svgString(svg.node()));
