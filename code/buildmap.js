@@ -1,4 +1,7 @@
 /*
+access data via APIs and leverage OpenTopography services
+https://opentopography.org/developers
+
 https://gdal.org/programs/gdal_contour.html
 
 gdal_contour -b 1 -a ELEV -i 100.0 -f "GeoJSON" Montserrat-topo.tif Montserrat100mfromGDAL.geojson
